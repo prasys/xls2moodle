@@ -35,7 +35,7 @@ def create_category(parent, name, course):
     text.text = '$course$/ImportFragen{}/{}'.format(course, name)
 
 
-def add_question(parent, num_correct, title, text, answers):
+def add_question(parent, num_correct, title, text, answers, verbose=False):
     """
     takes parameters and creates the xml structure for questions
     :param parent: the root
@@ -112,9 +112,14 @@ def add_question(parent, num_correct, title, text, answers):
     else:
         raise ValueError("num_correct must be between 1 and 4")
 
+
     # modify template with the question data
-    template.xpath('/question/name/text')[0].text = title.decode("UTF-8")
-    template.xpath('/question/questiontext/text')[0].text = etree.CDATA(text.decode("UTF-8"))
+    template.xpath('/question/name/text')[0].text = title.decode("utf-8")
+    if verbose:    
+        print ("Question: ", title)
+        print ("Text:", text.decode('utf-8'))
+        
+    template.xpath('/question/questiontext/text')[0].text = etree.CDATA(text.decode("utf-8"))
     for m in range(len(template.xpath('/question/answer/text'))):
         template.xpath('/question/answer/text')[m].text = etree.CDATA("%s" %answers[m].replace("$", "$$"))
 
@@ -138,8 +143,10 @@ def TableToXML(table, outname, course):
     # the question table is exported from google docs as a csv.
     # The column names must be the same as in "BAI_Zwischentestat_Fragen.csv"
     try:
-        questions = pd.read_csv(table, encoding = 'utf8')
+        print ("Trying to read as CSV.")
+        questions = pd.read_csv(table, encoding = 'utf8', sep=",")
     except:
+        print ("Trying to read as XLS.")
         questions = pd.read_excel(table, 0, encoding = 'utf8')
         
     categories = list(set(questions["Themenblock"].tolist()))
@@ -148,10 +155,13 @@ def TableToXML(table, outname, course):
     questions["FALSCH"] = [str(i) for i in questions["FALSCH"]]
     
     # clean questions dataframe
+    print(questions["WAHR"].isnull().values.any()) 
+    questions.replace("nan", "0", inplace=True)
     questions["WAHR"].fillna("0", inplace=True)
+    print(questions["WAHR"].isnull().values.any()) 
     questions["FALSCH"].fillna("0", inplace=True)
-    questions["WAHR"] = questions["WAHR"].map(lambda x: list(map(int, x.split(","))))
-    questions["FALSCH"] = questions["FALSCH"].map(lambda x: list(map(int, x.split(","))))
+    questions["WAHR"] = questions["WAHR"].map(lambda x: list(map(int, x.replace(".", ",").split(","))))
+    questions["FALSCH"] = questions["FALSCH"].map(lambda x: list(map(int, x.replace(".", ",").split(","))))
     
     # check for errors in data
     questions["datacheck"] = questions["WAHR"] + questions["FALSCH"]
@@ -202,14 +212,16 @@ def TableToXML(table, outname, course):
         
         create_category(root, i_category, course)
         for i in questions[questions["category"] == i_category].index:
-#            print (questions.loc[i, "num_correct"])
-#            print (questions.loc[i, "text"])
-#            print (questions.loc[i, "answers"])
+            print ("Processing Question:")
+            print (questions.loc[i, "num_correct"])
+            print (questions.loc[i, "text"])
+            print (questions.loc[i, "answers"])
             add_question(root,
                          num_correct=questions.loc[i, "num_correct"],
-                         title=questions.loc[i, "text"].replace("$", "$$").encode("UTF-8")[0:40],
+                         title=questions.loc[i, "text"].replace("$", "$$").encode("UTF-8")[0:38],
                          text=questions.loc[i, "text"].replace("$", "$$").encode("UTF-8"),
                          answers=questions.loc[i, "answers"])
+            print ("Done adding question.")
     
     # write the xml file
     tree.write(outname, encoding="UTF-8", xml_declaration=True, pretty_print=True)    
@@ -226,11 +238,8 @@ import os
 #sys.setdefaultencoding('utf-8')
 #sys.exit()
 # give the name of the table:
-table = "BAI_Zwischentestat_Fragen.csv"
-table = "Bioanalytik_II_Klausur.xlsx"
-table = "Bioanalytik_II_Praktikum.xlsx"
-
-course= "BioanalytikII_Praktikum"
+table = "AdvancedBA.xlsx"
+course= "AdvancedBioanalytics"
 outname = table.split(".")[0]+".xml"
 TableToXML(table, outname, course)
 #os.system('pause')
