@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<quiz>
+  <question type="category">
+    <category>
+      <text>$course$/ImportFragenAdvancedBioanalytics/Mass Spectrometry (MS)</text>
+    </category>
+  </question>
+  <question type="multichoice">
+    <name>
+      <text>Who was the inventor of the orbitrap?</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[Who was the inventor of the orbitrap?]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text/>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.0000000</penalty>
+    <hidden>0</hidden>
+    <single>false</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>none</answernumbering>
+    <correctfeedback format="html">
+      <text/>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text/>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text/>
+    </incorrectfeedback>
+    <answer fraction="100" format="html">
+      <text><![CDATA[A. Makarov]]></text>
+      <feedback format="html">
+        <text/>
+      </feedback>
+    </answer>
+    <answer fraction="-100" format="html">
+      <text><![CDATA[J. J. Thomson]]></text>
+      <feedback format="html">
+        <text/>
+      </feedback>
+    </answer>
+    <answer fraction="-100" format="html">
+      <text><![CDATA[W. E. Stephens]]></text>
+      <feedback format="html">
+        <text/>
+      </feedback>
+    </answer>
+    <answer fraction="-100" format="html">
+      <text><![CDATA[J. Futrell]]></text>
+      <feedback format="html">
+        <text/>
+      </feedback>
+    </answer>
+  </question>
+</quiz>
