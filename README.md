@@ -2,7 +2,7 @@
 Script to convert multiple choice questions from xls to moodle's xml format
 
 ## input
-The script requires an two arguments:
+The script requires two arguments (to be changed at the bottom of the MoodleXML file):
 - course name
 - location of tabular excel file with questions
 
