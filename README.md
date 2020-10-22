@@ -27,6 +27,11 @@ Optional columns:
 
 Further columns are ignored.
 
+# templates
+The script reads templates (xml_templates-folder) that were previously exported from moodle.
+If the format changes in the future this processed needs to be repeated. In the meantime, do
+not touch any of the tempalte xmls.
+
 ## known issues
 - latex equation code supported (?)
 - reading of data with special encoding (utf-8) currently not possible with the latest pandas version
