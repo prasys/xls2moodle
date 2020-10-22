@@ -208,15 +208,15 @@ def TableToXML(table, outname, course, verbose=0):
     parser = etree.XMLParser(strip_cdata=False, remove_blank_text=True)
 
     # import template
-    tree = etree.parse('template.xml', parser=parser)
+    tree = etree.parse('xml_templates/template.xml', parser=parser)
     root = tree.getroot()
 
     # import question template for every possible distribution of points.
     # This is necessary because the points have to add up to 100 in the ISIS System
-    one_correct = etree.parse('one_correct.xml', parser=parser)
-    two_correct = etree.parse('two_correct.xml', parser=parser)
-    three_correct = etree.parse('three_correct.xml', parser=parser)
-    four_correct = etree.parse('four_correct.xml', parser=parser)
+    one_correct = etree.parse('xml_templates/one_correct.xml', parser=parser)
+    two_correct = etree.parse('xml_templates/two_correct.xml', parser=parser)
+    three_correct = etree.parse('xml_templates/three_correct.xml', parser=parser)
+    four_correct = etree.parse('xml_templates/four_correct.xml', parser=parser)
 
     # append questions and categories to xml file
     for i_category in categories:
@@ -248,11 +248,11 @@ def TableToXML(table, outname, course, verbose=0):
 # give the name of the table:
 
 # this is the input data in xlsx format (table format, see readme)
-table = "template_advanced.xlsx"
+table = "examples/template_advanced.xlsx"
 # course name, relevant for the name in moodle where the questions are stored (I believe...)
 course = "AdvancedBioanalytics"
 # save the xml file with the same name as input but with xml extension
-outname = table.split(".")[0]+".xml"
+outname = table.split(".")[0]+"_moodle_import.xml"
 
 print(f"Reading {table}...")
 print(f"Generating questions for {course}...")
