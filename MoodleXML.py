@@ -1,10 +1,23 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-from lxml import etree
 import copy
-import pandas as pd
-import numpy as np
+try:
+    from lxml import etree
+    import pandas as pd
+    import numpy as np
+except ImportError:
+    message = 'Dependencies missing!\n' \
+              'Install via "pip install -r requirements.txt"'
+    import tkinter.messagebox
+    try:
+        root_window = tkinter.Tk()
+        root_window.withdraw()  # hide the root window
+        tkinter.messagebox.showerror(message=message)
+        root_window.destroy()
+    except tkinter.TclError:
+        print(message)
+    sys.exit(1)
 
 
 one_correct = None
