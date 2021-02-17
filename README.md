@@ -29,8 +29,8 @@ Further columns are ignored.
 
 ## templates
 The script reads templates (xml_templates-folder) that were previously exported from moodle.
-If the format changes in the future this processed needs to be repeated. In the meantime, do
-not touch any of the tempalte xmls.
+If the format changes in the future, this process needs to be repeated. In the meantime, do
+not touch any of the xml templates.
 
 ## known issues
 - latex equation code supported (?)
