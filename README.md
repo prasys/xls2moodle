@@ -4,21 +4,37 @@ can then be used to import the questions into moodle quizes. Please note, that t
 and the code was intended to be used for german tables / quizes. Adaptions are possible, but
 some columns (in the input) are hard-coded at the moment.
 
-To install the package and make use of the tkinter GUI (thanks @euvbonk), you can use 
+To install the package and make use of the tkinter GUI (thanks @euvbonk), you can use the following snippet
+(to be used best from an anaconda shell).
 
 >pip install xls2moodle
 
-## input
-The script requires two arguments as commandline options (see MoodleXML usage):
+## Running xls2moodle:
+The script requires two inputs:
 - course name
 - location of tabular excel file with questions
+- (optionally: custom templates corresponding to the xml templates with 1,2,3,4 correct answers.)
+
+There are two options to run xls2moodle, all command line calls should be executed in the anaconda
+shell:
+
+1) run the GUI by running:
+> xls2moodle
+
+![alt text](https://github.com/gieses/xls2moodle/blob/master/docs/gui_xls2moodle.PNG)
+
+2) run the command line version by executing.
+> xls2moodle -c COURSE_NAME -t XLS_QUESTIONS
+
+Help message can be displayed via:
+>xls2moodle --help
 
 ## output
 - xml format, ready for import in moodle
 
 ## question format
 
-Please refer to the template_advanced.xlsx to get an ideao on the file format.
+Please refer to the template_advanced.xlsx to get an idea on the file format.
 Mandatory columns:
 - Aussage1 - possible answer 1
 - Aussage2 - possible answer 2
