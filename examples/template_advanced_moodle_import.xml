@@ -2,7 +2,7 @@
 <quiz>
   <question type="category">
     <category>
-      <text>$course$/ImportFragenAdvancedBioanalytics/Mass Spectrometry (MS)</text>
+      <text>$course$/ImportFragentest1/Mass Spectrometry (MS)</text>
     </category>
   </question>
   <question type="multichoice">

@@ -2,7 +2,7 @@
 <quiz>
   <question type="category">
     <category>
-      <text>$course$/ImportFragenadvanced/Thema</text>
+      <text>$course$/ImportFragentest2/Thema</text>
     </category>
   </question>
   <question type="multichoice">

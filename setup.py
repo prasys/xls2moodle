@@ -114,6 +114,7 @@ setup(
                   },
     install_requires=REQUIRED,
     extras_require=EXTRAS,
+    package_data={'': ['xml_template/*.xml']},
     include_package_data=True,
     license='Apache License 2.0',
     keywords=KEYWORDS,

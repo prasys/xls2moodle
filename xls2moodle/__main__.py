@@ -22,10 +22,6 @@ except ImportError:
         print(message)
     sys.exit(1)
 
-# get path of package data
-modulepath = os.path.abspath(xls2moodle.__file__)
-XML_TEMPLATE_DIRECTORY = os.path.join(os.path.dirname(xls2moodle.__file__), 'xml_templates')
-
 
 def create_category(parent, name, course):
     """
@@ -128,7 +124,7 @@ def add_question(parent, template, title, text, answers, verbose=False):
 
 
 # noinspection PyPep8Naming
-def TableToXML(table, outname, course, verbose=0):
+def TableToXML(table, outname, course, verbose=0, xmltemplate_path=""):
     """
     Parse and convert the input table to xml format.
 
@@ -144,6 +140,10 @@ def TableToXML(table, outname, course, verbose=0):
         questions = pd.read_csv(table, sep=",")
     except pd.errors.ParserError:
         questions = pd.read_excel(table, 0)
+
+    if xmltemplate_path == "":
+        # get path of package data
+        xmltemplate_path = os.path.join(os.path.dirname(xls2moodle.__file__), 'xml_templates')
 
     # filter table
     if "Anwendung" in questions.columns:
@@ -214,7 +214,7 @@ def TableToXML(table, outname, course, verbose=0):
     parser = etree.XMLParser(strip_cdata=False, remove_blank_text=True)
 
     # import template
-    tree = etree.parse(os.path.join(XML_TEMPLATE_DIRECTORY, 'template.xml'),
+    tree = etree.parse(os.path.join(xmltemplate_path, 'template.xml'),
                        parser=parser)
     root = tree.getroot()
 
@@ -222,11 +222,8 @@ def TableToXML(table, outname, course, verbose=0):
     # This is necessary because the points have to add up to 100 in the ISIS
     # System
     correct_templates = list()
-    for tf in ('one_correct.xml', 'two_correct.xml', 'three_correct.xml',
-               'four_correct.xml'):
-        correct_templates.append(
-            etree.parse(os.path.join(XML_TEMPLATE_DIRECTORY, tf),
-                        parser=parser))
+    for tf in ('one_correct.xml', 'two_correct.xml', 'three_correct.xml', 'four_correct.xml'):
+        correct_templates.append(etree.parse(os.path.join(xmltemplate_path, tf), parser=parser))
     correct_templates = tuple(correct_templates)
 
     # append questions and categories to xml file
@@ -247,21 +244,16 @@ def TableToXML(table, outname, course, verbose=0):
                 root,
                 # choose the right template depending on the number of right
                 # answers
-                template=copy.deepcopy(
-                    correct_templates[questions.loc[i, "num_correct"] - 1]),
-                title=questions.loc[i, "text"].replace("$", "$$").encode(
-                    "UTF-8")[0:38],
-                text=questions.loc[i, "text"].replace("$", "$$").encode(
-                    "UTF-8"),
+                template=copy.deepcopy(correct_templates[questions.loc[i, "num_correct"] - 1]),
+                title=questions.loc[i, "text"].replace("$", "$$").encode("UTF-8")[0:38],
+                text=questions.loc[i, "text"].replace("$", "$$").encode("UTF-8"),
                 answers=questions.loc[i, "answers"])
 
     # write the xml file
-    tree.write(outname, encoding="UTF-8", xml_declaration=True,
-               pretty_print=True)
-    # %%
+    tree.write(outname, encoding="UTF-8", xml_declaration=True, pretty_print=True)
 
 
-def xls2moodle(table, course, verbose=False) -> str:
+def convert_xls2moodle(table, course, verbose=False, template="") -> str:
     """
     Perform xls2 moodle conversion.
 
@@ -271,10 +263,10 @@ def xls2moodle(table, course, verbose=False) -> str:
     """
     # save the xml file with the same name as input but with xml extension
     outname = table.split(".")[0]+"_moodle_import.xml"
-
     print(f"Reading {table}...")
+    print(f"XML path {template}...")
     print(f"Generating questions for {course}...")
-    TableToXML(table, outname, course, verbose=verbose)
+    TableToXML(table, outname, course, verbose=verbose, xmltemplate_path=template)
     print(f"Done! File saved to {outname}...")
     return outname
 
@@ -286,16 +278,16 @@ def main():
         root_window = tkinter.Tk()
         root_window.geometry("540x100")
         # root_window.resizable(0, 0)
-        root_window.title(
-            'Convert multiple choice questions'
-            ' from xls to moodle\'s xml format')
+        root_window.title('Convert multiple choice questions from xls to moodle\'s xml format')
         root_window.columnconfigure(0, weight=1)
         root_window.columnconfigure(1, weight=2)
         root_window.columnconfigure(2, weight=1)
         root_window.rowconfigure(0, weight=1)
         root_window.rowconfigure(1, weight=1)
         root_window.rowconfigure(2, weight=1)
+        root_window.rowconfigure(3, weight=1)
 
+        # course name (string input)
         course_label = tkinter.Label(root_window, text='Course name:')
         course_label.grid(column=0, row=0, sticky=tkinter.E)
         course_entry = tkinter.Entry(root_window)
@@ -306,12 +298,15 @@ def main():
         table_entry = tkinter.Entry(root_window, state=tkinter.DISABLED)
         table_entry.grid(column=1, row=1, sticky=tkinter.EW)
 
+        xml_label = tkinter.Label(root_window, text='XML folder: (optional)')
+        xml_label.grid(column=0, row=2, sticky=tkinter.E)
+        xml_entry = tkinter.Entry(root_window, state=tkinter.DISABLED)
+        xml_entry.grid(column=1, row=2, sticky=tkinter.EW)
+
         def handle_file_selection() -> None:
             import tkinter.filedialog
-            filetypes = (('Excel files', '*.xlsx'), ('CSV files', '*.csv'),
-                         ('All files', '*.*'))
-            dialog = tkinter.filedialog.Open(root_window,
-                                             title='Select table file',
+            filetypes = (('Excel files', '*.xlsx'), ('CSV files', '*.csv'), ('All files', '*.*'))
+            dialog = tkinter.filedialog.Open(root_window, title='Select table file',
                                              filetypes=filetypes)
             table_file_name = dialog.show()
             if table_file_name:
@@ -321,17 +316,33 @@ def main():
                 table_entry.insert(tkinter.END, table_file_name)
                 table_entry.config(state=tkinter.DISABLED)
 
-        file_selection_button = tkinter.Button(root_window,
-                                               text='Select file...',
+        def handle_path_selection():
+            import tkinter.filedialog
+            pathname = tkinter.filedialog.askdirectory()
+            print(pathname)
+            if pathname:
+                # set to normal before inserting
+                xml_entry.config(state=tkinter.NORMAL)
+                xml_entry.delete(0, tkinter.END)
+                xml_entry.insert(tkinter.END, pathname)
+                xml_entry.config(state=tkinter.DISABLED)
+
+        # xls file
+        file_selection_button = tkinter.Button(root_window, text='Select file...',
                                                command=handle_file_selection)
         file_selection_button.grid(column=2, row=1)
 
+        # xlm path
+        file_selection_button = tkinter.Button(root_window, text='Select path...',
+                                               command=handle_path_selection)
+        file_selection_button.grid(column=2, row=2)
+
         def handle_creation():
             if course_entry.get() and table_entry.get():
-                outname = xls2moodle(table_entry.get(), course_entry.get())
+                outname = convert_xls2moodle(table_entry.get(), course_entry.get(),
+                                             template=xml_entry.get())
                 import tkinter.messagebox
-                tkinter.messagebox.showinfo(
-                    message=f"Done! File saved to {outname}...")
+                tkinter.messagebox.showinfo(message=f"Done! File saved to {outname}...")
                 course_entry.delete(0, tkinter.END)
                 # set to normal before inserting
                 table_entry.config(state=tkinter.NORMAL)
@@ -340,8 +351,7 @@ def main():
 
         run_button = tkinter.Button(root_window, text='Create Moodle XML',
                                     command=handle_creation)
-        run_button.grid(column=1, row=2, columnspan=2, sticky=tkinter.E)
-
+        run_button.grid(column=1, row=3, columnspan=1, sticky=tkinter.E)
         root_window.mainloop()
     else:
         import argparse
@@ -350,18 +360,18 @@ def main():
             formatter_class=argparse.RawDescriptionHelpFormatter, description='''\
     Convert multiple choice questions from xls to moodle\'s xml format
     Example: {} -c {} -t {}'''.format(sys.argv[0], 'AdvancedBioanalytics',
-                                      os.path.join('examples',
-                                                   'template_advanced.xlsx')))
+                                      os.path.join('examples', 'template_advanced.xlsx')))
         args_parser.add_argument('-v', '--verbose', default=False,
                                  action='store_true')
-        args_parser.add_argument('-c', '--course', help='course name',
-                                 required=True)
+        args_parser.add_argument('-c', '--course', help='course name', required=True)
         args_parser.add_argument('-t', '--table',
-                                 help='location of tabular excel '
-                                      'file with questions',
+                                 help='location of tabular excel file with questions',
                                  required=True)
+        args_parser.add_argument('-x', '--templates',
+                                 help='location of xml template files to use.', default="",
+                                 required=False)
         args = args_parser.parse_args()
-        xls2moodle(args.table, args.course, args.verbose)
+        convert_xls2moodle(args.table, args.course, args.verbose, args.templates)
 
 
 if __name__ == "__main__":
