@@ -240,22 +240,30 @@ def TableToXML(table, outname, course, verbose=0):
     # %%
 
 
-# cannot recall the purpose of this snippet, I had some utf8 issues earlier where this snippet
-# helped. Might not be necessary with python >= 3.
-# reload(sys)
-# sys.setdefaultencoding('utf-8')
-# sys.exit()
-# give the name of the table:
+def main(table='examples/template_advanced.xlsx',
+         course='AdvancedBioanalytics', verbose=False) -> str:
+    # cannot recall the purpose of this snippet, I had some utf8 issues
+    # earlier where this snippet helped. Might not be necessary
+    # with python >= 3.
+    # reload(sys)
+    # sys.setdefaultencoding('utf-8')
+    # sys.exit()
+    # give the name of the table:
 
-# this is the input data in xlsx format (table format, see readme)
-table = "examples/template_advanced.xlsx"
-# course name, relevant for the name in moodle where the questions are stored (I believe...)
-course = "AdvancedBioanalytics"
-# save the xml file with the same name as input but with xml extension
-outname = table.split(".")[0]+"_moodle_import.xml"
+    # this is the input data in xlsx format (table format, see readme)
+    # table = "examples/template_advanced.xlsx"
+    # course name, relevant for the name in moodle where the questions are
+    # stored (I believe...)
+    # course = "AdvancedBioanalytics"
+    # save the xml file with the same name as input but with xml extension
+    outname = table.split(".")[0]+"_moodle_import.xml"
 
-print(f"Reading {table}...")
-print(f"Generating questions for {course}...")
-TableToXML(table, outname, course, verbose=0)
-print(f"Done! File saved to {outname}...")
+    print(f"Reading {table}...")
+    print(f"Generating questions for {course}...")
+    TableToXML(table, outname, course, verbose=verbose)
+    print(f"Done! File saved to {outname}...")
+    return outname
 
+
+if __name__ == '__main__':
+    main()
