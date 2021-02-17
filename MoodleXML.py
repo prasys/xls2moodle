@@ -279,22 +279,87 @@ def main(table, course, verbose=False) -> str:
 
 
 if __name__ == '__main__':
-    import argparse
+    if len(sys.argv) <= 1:
+        import tkinter
+        root_window = tkinter.Tk()
+        root_window.geometry("540x100")
+        # root_window.resizable(0, 0)
+        root_window.title(
+            'Convert multiple choice questions'
+            ' from xls to moodle\'s xml format')
+        root_window.columnconfigure(0, weight=1)
+        root_window.columnconfigure(1, weight=2)
+        root_window.columnconfigure(2, weight=1)
+        root_window.rowconfigure(0, weight=1)
+        root_window.rowconfigure(1, weight=1)
+        root_window.rowconfigure(2, weight=1)
 
-    args_parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        description='''\
+        course_label = tkinter.Label(root_window, text='Course name:')
+        course_label.grid(column=0, row=0, sticky=tkinter.E)
+        course_entry = tkinter.Entry(root_window)
+        course_entry.grid(column=1, row=0, columnspan=2, sticky=tkinter.EW)
+
+        table_label = tkinter.Label(root_window, text='Table file:')
+        table_label.grid(column=0, row=1, sticky=tkinter.E)
+        table_entry = tkinter.Entry(root_window, state=tkinter.DISABLED)
+        table_entry.grid(column=1, row=1, sticky=tkinter.EW)
+
+        def handle_file_selection() -> None:
+            import tkinter.filedialog
+            filetypes = (('Excel files', '*.xlsx'), ('CSV files', '*.csv'),
+                         ('All files', '*.*'))
+            dialog = tkinter.filedialog.Open(root_window,
+                                             title='Select table file',
+                                             filetypes=filetypes)
+            table_file_name = dialog.show()
+            if table_file_name:
+                # set to normal before inserting
+                table_entry.config(state=tkinter.NORMAL)
+                table_entry.delete(0, tkinter.END)
+                table_entry.insert(tkinter.END, table_file_name)
+                table_entry.config(state=tkinter.DISABLED)
+
+
+        file_selection_button = tkinter.Button(root_window,
+                                               text='Select file...',
+                                               command=handle_file_selection)
+        file_selection_button.grid(column=2, row=1)
+
+        def handle_creation():
+            if course_entry.get() and table_entry.get():
+                outname = main(table_entry.get(), course_entry.get())
+                import tkinter.messagebox
+                tkinter.messagebox.showinfo(
+                    message=f"Done! File saved to {outname}...")
+                course_entry.delete(0, tkinter.END)
+                # set to normal before inserting
+                table_entry.config(state=tkinter.NORMAL)
+                table_entry.delete(0, tkinter.END)
+                table_entry.config(state=tkinter.DISABLED)
+
+
+        run_button = tkinter.Button(root_window, text='Create Moodle XML',
+                                    command=handle_creation)
+        run_button.grid(column=1, row=2, columnspan=2, sticky=tkinter.E)
+
+        root_window.mainloop()
+    else:
+        import argparse
+
+        args_parser = argparse.ArgumentParser(
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+            description='''\
 Convert multiple choice questions from xls to moodle\'s xml format
 Example: {} -c {} -t {}'''.format(sys.argv[0], 'AdvancedBioanalytics',
                                   os.path.join('examples',
                                                'template_advanced.xlsx')))
-    args_parser.add_argument('-v', '--verbose', default=False,
-                             action='store_true')
-    args_parser.add_argument('-c', '--course', help='course name',
-                             required=True)
-    args_parser.add_argument('-t', '--table',
-                             help='location of tabular excel '
-                                  'file with questions',
-                             required=True)
-    args = args_parser.parse_args()
-    main(args.table, args.course, args.verbose)
+        args_parser.add_argument('-v', '--verbose', default=False,
+                                 action='store_true')
+        args_parser.add_argument('-c', '--course', help='course name',
+                                 required=True)
+        args_parser.add_argument('-t', '--table',
+                                 help='location of tabular excel '
+                                      'file with questions',
+                                 required=True)
+        args = args_parser.parse_args()
+        main(args.table, args.course, args.verbose)
