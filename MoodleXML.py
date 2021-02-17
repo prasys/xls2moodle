@@ -20,10 +20,7 @@ except ImportError:
     sys.exit(1)
 
 
-one_correct = None
-two_correct = None
-three_correct = None
-four_correct = None
+XML_TEMPLATE_DIRECTORY = 'xml_templates'
 
 #import re
 # def remove_control_characters(html):
@@ -52,14 +49,15 @@ def create_category(parent, name, course):
     text.text = '$course$/ImportFragen{}/{}'.format(course, name)
 
 
-def add_question(parent, num_correct, title, text, answers, verbose=False):
+def add_question(parent, template, title, text, answers, verbose=False):
     """
     takes parameters and creates the xml structure for questions
     :param parent: the root
-    :param num_correct: number of correct answers
+    :param template: template of correct answers
     :param title: question title
     :param text: question
     :param answers: list of answers. first the true, then the false answers!
+    :param verbose: print messages if True
     xml structure (for one correct answer):
     <question type="multichoice">
         <name>
@@ -112,22 +110,6 @@ def add_question(parent, num_correct, title, text, answers, verbose=False):
         </answer>
     </question>
     """
-    global one_correct
-    global two_correct
-    global three_correct
-    global four_correct
-
-    # choose the right template depending on the # of right answers
-    if num_correct == 1:
-        template = copy.deepcopy(one_correct)
-    elif num_correct == 2:
-        template = copy.deepcopy(two_correct)
-    elif num_correct == 3:
-        template = copy.deepcopy(three_correct)
-    elif num_correct == 4:
-        template = copy.deepcopy(four_correct)
-    else:
-        raise ValueError("num_correct must be between 1 and 4")
 
     # modify template with the question data
     template.xpath('/question/name/text')[0].text = title.decode("utf-8")
@@ -149,10 +131,6 @@ def TableToXML(table, outname, course, verbose=0):
 
     """
     # %%
-    global one_correct
-    global two_correct
-    global three_correct
-    global four_correct
 
     # import questions
     # the question table is exported from google docs as a csv.
@@ -222,15 +200,20 @@ def TableToXML(table, outname, course, verbose=0):
     parser = etree.XMLParser(strip_cdata=False, remove_blank_text=True)
 
     # import template
-    tree = etree.parse('xml_templates/template.xml', parser=parser)
+    tree = etree.parse(os.path.join(XML_TEMPLATE_DIRECTORY, 'template.xml'),
+                       parser=parser)
     root = tree.getroot()
 
     # import question template for every possible distribution of points.
-    # This is necessary because the points have to add up to 100 in the ISIS System
-    one_correct = etree.parse('xml_templates/one_correct.xml', parser=parser)
-    two_correct = etree.parse('xml_templates/two_correct.xml', parser=parser)
-    three_correct = etree.parse('xml_templates/three_correct.xml', parser=parser)
-    four_correct = etree.parse('xml_templates/four_correct.xml', parser=parser)
+    # This is necessary because the points have to add up to 100 in the ISIS
+    # System
+    correct_templates = list()
+    for tf in ('one_correct.xml', 'two_correct.xml', 'three_correct.xml',
+               'four_correct.xml'):
+        correct_templates.append(
+            etree.parse(os.path.join(XML_TEMPLATE_DIRECTORY, tf),
+                        parser=parser))
+    correct_templates = tuple(correct_templates)
 
     # append questions and categories to xml file
     for i_category in categories:
@@ -243,11 +226,18 @@ def TableToXML(table, outname, course, verbose=0):
                 print(questions.loc[i, "num_correct"])
                 print(questions.loc[i, "text"])
                 print(questions.loc[i, "answers"])
-            add_question(root,
-                         num_correct=questions.loc[i, "num_correct"],
-                         title=questions.loc[i, "text"].replace("$", "$$").encode("UTF-8")[0:38],
-                         text=questions.loc[i, "text"].replace("$", "$$").encode("UTF-8"),
-                         answers=questions.loc[i, "answers"])
+                print(correct_templates[
+                    questions.loc[i, "num_correct"] - 1].xpath(
+                        '/question/answer/@fraction'))
+            add_question(
+                root,
+                # choose the right template depending on the number of right
+                # answers
+                template=copy.deepcopy(
+                    correct_templates[questions.loc[i, "num_correct"] - 1]),
+                title=questions.loc[i, "text"].replace("$", "$$").encode("UTF-8")[0:38],
+                text=questions.loc[i, "text"].replace("$", "$$").encode("UTF-8"),
+                answers=questions.loc[i, "answers"])
 
     # write the xml file
     tree.write(outname, encoding="UTF-8", xml_declaration=True, pretty_print=True)
