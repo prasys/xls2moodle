@@ -254,8 +254,7 @@ def TableToXML(table, outname, course, verbose=0):
     # %%
 
 
-def main(table='examples/template_advanced.xlsx',
-         course='AdvancedBioanalytics', verbose=False) -> str:
+def main(table, course, verbose=False) -> str:
     # cannot recall the purpose of this snippet, I had some utf8 issues
     # earlier where this snippet helped. Might not be necessary
     # with python >= 3.
@@ -280,4 +279,22 @@ def main(table='examples/template_advanced.xlsx',
 
 
 if __name__ == '__main__':
-    main()
+    import argparse
+
+    args_parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description='''\
+Convert multiple choice questions from xls to moodle\'s xml format
+Example: {} -c {} -t {}'''.format(sys.argv[0], 'AdvancedBioanalytics',
+                                  os.path.join('examples',
+                                               'template_advanced.xlsx')))
+    args_parser.add_argument('-v', '--verbose', default=False,
+                             action='store_true')
+    args_parser.add_argument('-c', '--course', help='course name',
+                             required=True)
+    args_parser.add_argument('-t', '--table',
+                             help='location of tabular excel '
+                                  'file with questions',
+                             required=True)
+    args = args_parser.parse_args()
+    main(args.table, args.course, args.verbose)
