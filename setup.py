@@ -46,7 +46,7 @@ except FileNotFoundError:
 
 # Load the package's __version__.py module as a dictionary.
 about = {}
-project_slug = "xirt"
+project_slug = "xls2moodle"
 # with open(os.path.join(here, project_slug, '__version__.py')) as f:
 #     exec(f.read(), about)
 
