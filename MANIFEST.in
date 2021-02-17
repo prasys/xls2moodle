@@ -1,2 +1,4 @@
 include versioneer.py
+include README.md
+include xls2moodle/xml_templates/*.xml
 include xls2moodle/_version.py
