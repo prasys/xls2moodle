@@ -22,14 +22,17 @@ except ImportError:
 
 XML_TEMPLATE_DIRECTORY = 'xml_templates'
 
-#import re
+# import re
 # def remove_control_characters(html):
 #    def str_to_int(s, default, base=10):
 #        if int(s, base) < 0x10000:
 #            return unichr(int(s, base))
 #        return default
-#    html = re.sub(ur"&#(\d+);?", lambda c: str_to_int(c.group(1), c.group(0)), html)
-#    html = re.sub(ur"&#[xX]([0-9a-fA-F]+);?", lambda c: str_to_int(c.group(1), c.group(0), base=16), html)
+#    html = re.sub(ur"&#(\d+);?", lambda c: str_to_int(c.group(1),
+#                  c.group(0)), html)
+#    html = re.sub(ur"&#[xX]([0-9a-fA-F]+);?",
+#                  lambda c: str_to_int(c.group(1), c.group(0), base=16),
+#                  html)
 #    html = re.sub(ur"[\x00-\x08\x0b\x0e-\x1f\x7f]", "", html)
 #    return (html)
 
@@ -43,7 +46,8 @@ def create_category(parent, name, course):
         </category>
     </question>
     """
-    question = etree.SubElement(parent, 'question', attrib={'type': 'category'})
+    question = etree.SubElement(parent, 'question',
+                                attrib={'type': 'category'})
     category = etree.SubElement(question, 'category')
     text = etree.SubElement(category, 'text')
     text.text = '$course$/ImportFragen{}/{}'.format(course, name)
@@ -117,10 +121,11 @@ def add_question(parent, template, title, text, answers, verbose=False):
         print("Question: ", title)
         print("Text:", text.decode('utf-8'))
 
-    template.xpath('/question/questiontext/text')[0].text = etree.CDATA(text.decode("utf-8"))
+    template.xpath('/question/questiontext/text')[0].text = etree.CDATA(
+        text.decode("utf-8"))
     for m in range(len(template.xpath('/question/answer/text'))):
-        template.xpath(
-            '/question/answer/text')[m].text = etree.CDATA("%s" % answers[m].replace("$", "$$"))
+        template.xpath('/question/answer/text')[m].text = etree.CDATA(
+            "%s" % answers[m].replace("$", "$$"))
 
     # add question to root of main file
     parent.append(template.getroot())
@@ -137,7 +142,7 @@ def TableToXML(table, outname, course, verbose=0):
     # The column names must be the same as in "BAI_Zwischentestat_Fragen.csv"
     try:
         questions = pd.read_csv(table, sep=",")
-    except:
+    except pd.errors.ParserError:
         questions = pd.read_excel(table, 0)
 
     # filter table
@@ -167,12 +172,15 @@ def TableToXML(table, outname, course, verbose=0):
     questions["datacheck"] = questions["WAHR"] + questions["FALSCH"]
     for i in questions.index:
         # see error codes for cases
-        if len(questions.loc[i, "datacheck"]) != len((set(questions.loc[i, "datacheck"]))):
-            raise ValueError("duplication in WAHR/FALSCH columns at index {}".format(i))
+        if len(questions.loc[i, "datacheck"]) != len(
+                (set(questions.loc[i, "datacheck"]))):
+            raise ValueError(
+                "duplication in WAHR/FALSCH columns at index {}".format(i))
 
         if not (set(questions.loc[i, "datacheck"]) == set([0, 1, 2, 3, 4])
                 or set(questions.loc[i, "datacheck"]) == set([1, 2, 3, 4])):
-            raise ValueError("Not all answers in WAHR/FALSCH column at index {}".format(i))
+            raise ValueError(
+                "Not all answers in WAHR/FALSCH column at index {}".format(i))
 
         if questions.loc[i, "WAHR"] == [0]:
             raise ValueError("zero in WAHR column at index {}".format(i))
@@ -182,7 +190,9 @@ def TableToXML(table, outname, course, verbose=0):
 
     # add/rename columns
     questions["num_correct"] = questions["WAHR"].map(len)
-    questions.rename(columns={'Hauptfrage': 'text', 'Themenblock': 'category'}, inplace=True)
+    questions.rename(
+        columns={'Hauptfrage': 'text', 'Themenblock': 'category'},
+        inplace=True)
     questions['answers'] = np.empty((len(questions), 0)).tolist()
 
     # create answer list with right answers first, then wrong answers
@@ -190,11 +200,15 @@ def TableToXML(table, outname, course, verbose=0):
         remaining = [1, 2, 3, 4]
         for j in questions.loc[i, "WAHR"]:
             questions.loc[i, "answers"].append(
-                questions.loc[i, ["Aussage1", "Aussage2", "Aussage3", "Aussage4"]][j-1])
+                questions.loc[
+                    i, ["Aussage1", "Aussage2", "Aussage3", "Aussage4"]][
+                    j - 1])
             remaining.remove(j)
         for k in remaining:
             questions.loc[i, "answers"].append(
-                questions.loc[i, ["Aussage1", "Aussage2", "Aussage3", "Aussage4"]][k-1])
+                questions.loc[
+                    i, ["Aussage1", "Aussage2", "Aussage3", "Aussage4"]][
+                    k - 1])
 
     # configure parser: activate cdata and remove blank text at import
     parser = etree.XMLParser(strip_cdata=False, remove_blank_text=True)
@@ -235,12 +249,15 @@ def TableToXML(table, outname, course, verbose=0):
                 # answers
                 template=copy.deepcopy(
                     correct_templates[questions.loc[i, "num_correct"] - 1]),
-                title=questions.loc[i, "text"].replace("$", "$$").encode("UTF-8")[0:38],
-                text=questions.loc[i, "text"].replace("$", "$$").encode("UTF-8"),
+                title=questions.loc[i, "text"].replace("$", "$$").encode(
+                    "UTF-8")[0:38],
+                text=questions.loc[i, "text"].replace("$", "$$").encode(
+                    "UTF-8"),
                 answers=questions.loc[i, "answers"])
 
     # write the xml file
-    tree.write(outname, encoding="UTF-8", xml_declaration=True, pretty_print=True)
+    tree.write(outname, encoding="UTF-8", xml_declaration=True,
+               pretty_print=True)
     # %%
 
 
