@@ -131,6 +131,7 @@ def add_question(parent, template, title, text, answers, verbose=False):
     parent.append(template.getroot())
 
 
+# noinspection PyPep8Naming
 def TableToXML(table, outname, course, verbose=0):
     """
 
@@ -177,8 +178,8 @@ def TableToXML(table, outname, course, verbose=0):
             raise ValueError(
                 "duplication in WAHR/FALSCH columns at index {}".format(i))
 
-        if not (set(questions.loc[i, "datacheck"]) == set([0, 1, 2, 3, 4])
-                or set(questions.loc[i, "datacheck"]) == set([1, 2, 3, 4])):
+        if not (set(questions.loc[i, "datacheck"]) == {0, 1, 2, 3, 4}
+                or set(questions.loc[i, "datacheck"]) == {1, 2, 3, 4}):
             raise ValueError(
                 "Not all answers in WAHR/FALSCH column at index {}".format(i))
 
