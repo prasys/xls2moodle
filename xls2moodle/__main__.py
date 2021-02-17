@@ -1,7 +1,10 @@
+"""Main module for xls2 moodle conversion."""
 # -*- coding: utf-8 -*-
 import os
 import sys
 import copy
+import xls2moodle
+
 try:
     from lxml import etree
     import pandas as pd
@@ -19,32 +22,25 @@ except ImportError:
         print(message)
     sys.exit(1)
 
-
-XML_TEMPLATE_DIRECTORY = 'xml_templates'
-
-# import re
-# def remove_control_characters(html):
-#    def str_to_int(s, default, base=10):
-#        if int(s, base) < 0x10000:
-#            return unichr(int(s, base))
-#        return default
-#    html = re.sub(ur"&#(\d+);?", lambda c: str_to_int(c.group(1),
-#                  c.group(0)), html)
-#    html = re.sub(ur"&#[xX]([0-9a-fA-F]+);?",
-#                  lambda c: str_to_int(c.group(1), c.group(0), base=16),
-#                  html)
-#    html = re.sub(ur"[\x00-\x08\x0b\x0e-\x1f\x7f]", "", html)
-#    return (html)
+# get path of package data
+modulepath = os.path.abspath(xls2moodle.__file__)
+XML_TEMPLATE_DIRECTORY = os.path.join(os.path.dirname(xls2moodle.__file__), 'xml_templates')
 
 
 def create_category(parent, name, course):
     """
-    takes the category name and appends following xml structure:
+    Create a category in xml structure.
+
+    Takes the category name and appends following xml structure:
     <question type="category">
         <category>
             <text>$course$/Standard für [SoSe17] BAI/Name</text>
         </category>
     </question>
+
+    :param parent: the root
+    :param name: str, name for the questions (?)
+    :param course: str, name of the course
     """
     question = etree.SubElement(parent, 'question',
                                 attrib={'type': 'category'})
@@ -55,7 +51,8 @@ def create_category(parent, name, course):
 
 def add_question(parent, template, title, text, answers, verbose=False):
     """
-    takes parameters and creates the xml structure for questions
+    Take parameters and create the xml structure for questions.
+
     :param parent: the root
     :param template: template of correct answers
     :param title: question title
@@ -114,7 +111,6 @@ def add_question(parent, template, title, text, answers, verbose=False):
         </answer>
     </question>
     """
-
     # modify template with the question data
     template.xpath('/question/name/text')[0].text = title.decode("utf-8")
     if verbose:
@@ -134,10 +130,13 @@ def add_question(parent, template, title, text, answers, verbose=False):
 # noinspection PyPep8Naming
 def TableToXML(table, outname, course, verbose=0):
     """
+    Parse and convert the input table to xml format.
 
+    :param table: df with questions
+    :param outname: str, location for storing the final table
+    :param course. str, course name
+    :param verbose: bool, if prints should be used for progress (default: 0)
     """
-    # %%
-
     # import questions
     # the question table is exported from google docs as a csv.
     # The column names must be the same as in "BAI_Zwischentestat_Fragen.csv"
@@ -262,20 +261,14 @@ def TableToXML(table, outname, course, verbose=0):
     # %%
 
 
-def main(table, course, verbose=False) -> str:
-    # cannot recall the purpose of this snippet, I had some utf8 issues
-    # earlier where this snippet helped. Might not be necessary
-    # with python >= 3.
-    # reload(sys)
-    # sys.setdefaultencoding('utf-8')
-    # sys.exit()
-    # give the name of the table:
+def xls2moodle(table, course, verbose=False) -> str:
+    """
+    Perform xls2 moodle conversion.
 
-    # this is the input data in xlsx format (table format, see readme)
-    # table = "examples/template_advanced.xlsx"
-    # course name, relevant for the name in moodle where the questions are
-    # stored (I believe...)
-    # course = "AdvancedBioanalytics"
+    :param table: df with questions
+    :param course. str, course name
+    :param verbose: bool, if prints should be used for progress
+    """
     # save the xml file with the same name as input but with xml extension
     outname = table.split(".")[0]+"_moodle_import.xml"
 
@@ -286,7 +279,8 @@ def main(table, course, verbose=False) -> str:
     return outname
 
 
-if __name__ == '__main__':
+def main():
+    """XLS2Moodle main function."""
     if len(sys.argv) <= 1:
         import tkinter
         root_window = tkinter.Tk()
@@ -327,7 +321,6 @@ if __name__ == '__main__':
                 table_entry.insert(tkinter.END, table_file_name)
                 table_entry.config(state=tkinter.DISABLED)
 
-
         file_selection_button = tkinter.Button(root_window,
                                                text='Select file...',
                                                command=handle_file_selection)
@@ -335,7 +328,7 @@ if __name__ == '__main__':
 
         def handle_creation():
             if course_entry.get() and table_entry.get():
-                outname = main(table_entry.get(), course_entry.get())
+                outname = xls2moodle(table_entry.get(), course_entry.get())
                 import tkinter.messagebox
                 tkinter.messagebox.showinfo(
                     message=f"Done! File saved to {outname}...")
@@ -344,7 +337,6 @@ if __name__ == '__main__':
                 table_entry.config(state=tkinter.NORMAL)
                 table_entry.delete(0, tkinter.END)
                 table_entry.config(state=tkinter.DISABLED)
-
 
         run_button = tkinter.Button(root_window, text='Create Moodle XML',
                                     command=handle_creation)
@@ -355,12 +347,11 @@ if __name__ == '__main__':
         import argparse
 
         args_parser = argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter,
-            description='''\
-Convert multiple choice questions from xls to moodle\'s xml format
-Example: {} -c {} -t {}'''.format(sys.argv[0], 'AdvancedBioanalytics',
-                                  os.path.join('examples',
-                                               'template_advanced.xlsx')))
+            formatter_class=argparse.RawDescriptionHelpFormatter, description='''\
+    Convert multiple choice questions from xls to moodle\'s xml format
+    Example: {} -c {} -t {}'''.format(sys.argv[0], 'AdvancedBioanalytics',
+                                      os.path.join('examples',
+                                                   'template_advanced.xlsx')))
         args_parser.add_argument('-v', '--verbose', default=False,
                                  action='store_true')
         args_parser.add_argument('-c', '--course', help='course name',
@@ -370,4 +361,8 @@ Example: {} -c {} -t {}'''.format(sys.argv[0], 'AdvancedBioanalytics',
                                       'file with questions',
                                  required=True)
         args = args_parser.parse_args()
-        main(args.table, args.course, args.verbose)
+        xls2moodle(args.table, args.course, args.verbose)
+
+
+if __name__ == "__main__":
+    main()

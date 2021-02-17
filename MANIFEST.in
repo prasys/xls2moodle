@@ -1,0 +1,2 @@
+include versioneer.py
+include xls2moodle/_version.py
