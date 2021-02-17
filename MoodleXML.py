@@ -158,7 +158,7 @@ def TableToXML(table, outname, course, verbose=0):
     # clean questions dataframe
     if verbose:
         print(questions["WAHR"].isnull().values.any())
-    questions.replace("nan", "0", inplace=True)
+    questions.replace(np.nan, "0", inplace=True)
     questions["WAHR"].fillna("0", inplace=True)
     if verbose:
         print(questions["WAHR"].isnull().values.any())
