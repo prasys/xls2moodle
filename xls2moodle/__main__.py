@@ -116,8 +116,12 @@ def add_question(parent, template, title, text, answers, verbose=False):
     template.xpath('/question/questiontext/text')[0].text = etree.CDATA(
         text.decode("utf-8"))
     for m in range(len(template.xpath('/question/answer/text'))):
+        try:
+            cell_content = answers[m].replace("$", "$$")
+        except AttributeError:  # cell contains int
+            cell_content = answers[m]
         template.xpath('/question/answer/text')[m].text = etree.CDATA(
-            "%s" % answers[m].replace("$", "$$"))
+            "%s" % cell_content)
 
     # add question to root of main file
     parent.append(template.getroot())
