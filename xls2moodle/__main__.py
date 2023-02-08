@@ -141,7 +141,7 @@ def TableToXML(table, outname, course, verbose=0, xmltemplate_path=""):
     # the question table is exported from google docs as a csv.
     # The column names must be the same as in "BAI_Zwischentestat_Fragen.csv"
     try:
-        questions = pd.read_csv(table, sep=",")
+        questions = pd.read_csv(table, sep=",", encoding= 'unicode_escape')
     except pd.errors.ParserError:
         questions = pd.read_excel(table, 0)
 
