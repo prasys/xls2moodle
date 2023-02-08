@@ -3,7 +3,7 @@
 import os
 import sys
 import copy
-import xls2moodle
+#import xls2moodle
 
 try:
     from lxml import etree
@@ -82,25 +82,25 @@ def add_question(parent, template, title, text, answers, verbose=False):
             <text/>
         </incorrectfeedback>
         <answer fraction="-100" format="html">
-            <text>Falsche Aussage1</text>
+            <text>FALSEe Answer1</text>
             <feedback format="html">
                 <text/>
             </feedback>
         </answer>
         <answer fraction="-100" format="html">
-            <text><![CDATA[<p>Falsche Aussage2<br></p>]]></text>
+            <text><![CDATA[<p>FALSEe Answer2<br></p>]]></text>
             <feedback format="html">
                 <text/>
             </feedback>
         </answer>
         <answer fraction="-100" format="html">
-            <text><![CDATA[<p>Falsche Aussage3<br></p>]]></text>
+            <text><![CDATA[<p>FALSEe Answer3<br></p>]]></text>
             <feedback format="html">
                 <text/>
             </feedback>
         </answer>
         <answer fraction="100" format="html">
-            <text><![CDATA[<p>Richtige Aussage4<br></p>]]></text>
+            <text><![CDATA[<p>Richtige Answer4<br></p>]]></text>
             <feedback format="html">
                 <text/>
             </feedback>
@@ -150,68 +150,68 @@ def TableToXML(table, outname, course, verbose=0, xmltemplate_path=""):
         xmltemplate_path = os.path.join(os.path.dirname(xls2moodle.__file__), 'xml_templates')
 
     # filter table
-    if "Anwendung" in questions.columns:
-        questions = questions[questions["Anwendung"] == 1]
+    if "Answer" in questions.columns:
+        questions = questions[questions["Answer"] == 1]
 
     # get categories
-    categories = list(set(questions["Themenblock"].tolist()))
+    categories = list(set(questions["Theme"].tolist()))
 
-    questions["WAHR"] = [str(i) for i in questions["WAHR"]]
-    questions["FALSCH"] = [str(i) for i in questions["FALSCH"]]
+    questions["CORRECT"] = [str(i) for i in questions["CORRECT"]]
+    questions["FALSE"] = [str(i) for i in questions["FALSE"]]
 
     # clean questions dataframe
     if verbose:
-        print(questions["WAHR"].isnull().values.any())
+        print(questions["CORRECT"].isnull().values.any())
     questions.replace(np.nan, "0", inplace=True)
-    questions["WAHR"].fillna("0", inplace=True)
+    questions["CORRECT"].fillna("0", inplace=True)
     if verbose:
-        print(questions["WAHR"].isnull().values.any())
-    questions["FALSCH"].fillna("0", inplace=True)
-    questions["WAHR"] = questions["WAHR"].map(
+        print(questions["CORRECT"].isnull().values.any())
+    questions["FALSE"].fillna("0", inplace=True)
+    questions["CORRECT"] = questions["CORRECT"].map(
         lambda x: list(map(int, x.replace(".", ",").split(","))))
-    questions["FALSCH"] = questions["FALSCH"].map(
+    questions["FALSE"] = questions["FALSE"].map(
         lambda x: list(map(int, x.replace(".", ",").split(","))))
 
     # check for errors in data
-    questions["datacheck"] = questions["WAHR"] + questions["FALSCH"]
+    questions["datacheck"] = questions["CORRECT"] + questions["FALSE"]
     for i in questions.index:
         # see error codes for cases
         if len(questions.loc[i, "datacheck"]) != len(
                 (set(questions.loc[i, "datacheck"]))):
             raise ValueError(
-                "duplication in WAHR/FALSCH columns at index {}".format(i))
+                "duplication in CORRECT/FALSE columns at index {}".format(i))
 
         if not (set(questions.loc[i, "datacheck"]) == {0, 1, 2, 3, 4}
                 or set(questions.loc[i, "datacheck"]) == {1, 2, 3, 4}):
             raise ValueError(
-                "Not all answers in WAHR/FALSCH column at index {}".format(i))
+                "Not all answers in CORRECT/FALSE column at index {}".format(i))
 
-        if questions.loc[i, "WAHR"] == [0]:
-            raise ValueError("zero in WAHR column at index {}".format(i))
+        if questions.loc[i, "CORRECT"] == [0]:
+            raise ValueError("zero in CORRECT column at index {}".format(i))
 
-        if pd.isnull(questions.loc[i, "Themenblock"]):
+        if pd.isnull(questions.loc[i, "Theme"]):
             raise ValueError("Empty category at index {}".format(i))
 
     # add/rename columns
-    questions["num_correct"] = questions["WAHR"].map(len)
+    questions["num_correct"] = questions["CORRECT"].map(len)
     questions.rename(
-        columns={'Hauptfrage': 'text', 'Themenblock': 'category'},
+        columns={'Question': 'text', 'Theme': 'category'},
         inplace=True)
     questions['answers'] = np.empty((len(questions), 0)).tolist()
 
     # create answer list with right answers first, then wrong answers
     for i in questions.index:
         remaining = [1, 2, 3, 4]
-        for j in questions.loc[i, "WAHR"]:
+        for j in questions.loc[i, "CORRECT"]:
             questions.loc[i, "answers"].append(
                 questions.loc[
-                    i, ["Aussage1", "Aussage2", "Aussage3", "Aussage4"]][
+                    i, ["Answer1", "Answer2", "Answer3", "Answer4"]][
                     j - 1])
             remaining.remove(j)
         for k in remaining:
             questions.loc[i, "answers"].append(
                 questions.loc[
-                    i, ["Aussage1", "Aussage2", "Aussage3", "Aussage4"]][
+                    i, ["Answer1", "Answer2", "Answer3", "Answer4"]][
                     k - 1])
 
     # configure parser: activate cdata and remove blank text at import

@@ -13,8 +13,8 @@
     <defaultgrade>1.0000000</defaultgrade>
     <penalty>0.0000000</penalty>
     <hidden>0</hidden>
-    <single>false</single>
-    <shuffleanswers>true</shuffleanswers>
+    <single>true</single>
+    <shuffleanswers>false</shuffleanswers>
     <answernumbering>none</answernumbering>
     <correctfeedback format="html">
       <text></text>
