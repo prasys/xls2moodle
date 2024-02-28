@@ -141,13 +141,14 @@ def TableToXML(table, outname, course, verbose=0, xmltemplate_path=""):
     # the question table is exported from google docs as a csv.
     # The column names must be the same as in "BAI_Zwischentestat_Fragen.csv"
     try:
-        questions = pd.read_csv(table, sep=",", encoding= 'unicode_escape')
+        questions = pd.read_csv(table, sep=",", encoding= 'utf-8')
+        print(questions.columns)
     except pd.errors.ParserError:
         questions = pd.read_excel(table, 0)
 
     if xmltemplate_path == "":
         # get path of package data
-        xmltemplate_path = os.path.join(os.path.dirname(xls2moodle.__file__), 'xml_templates')
+        xmltemplate_path = os.path.join(os.path.dirname(__file__), 'xml_templates')
 
     # filter table
     if "Answer" in questions.columns:
